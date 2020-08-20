@@ -1,0 +1,1 @@
+worker: python -m spotylinkbot.__main__
