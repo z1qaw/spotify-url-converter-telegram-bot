@@ -13,6 +13,7 @@ VAR_NAMES = {
     'DEBUG_VAR_NAME': 'DEBUG',
     'BOT_ADMINS_VAR_NAME': 'ADMINS_LIST',
     'SEND_START_MESSAGE_VAR_NAME': 'SEND_START_MESSAGE',
+    'BOT_POLLING_RELOAD_DELAY_VAR_NAME': 'POLLING_ERROR_RELOAD_TIMEOUT',
 }
 
 for key in VAR_NAMES:
@@ -42,11 +43,14 @@ if VAR_NAMES['BOT_POLLING_INTERVAL_VAR_NAME'] and BOT_POLLING_INTERVAL < 0.2:
     logger.warning('Bot polling interval doesn\'t recommended to be lower then 0.2')
 
 BOT_SEND_START_MESSAGE = True if os.environ.get(VAR_NAMES['SEND_START_MESSAGE_VAR_NAME']) == 'true' else False
+BOT_POLLING_ERROR_RELOAD_INTERVAL = int(os.environ.get(VAR_NAMES['BOT_POLLING_RELOAD_DELAY_VAR_NAME'])) \
+    if can_value_be_int(os.environ.get(VAR_NAMES['BOT_POLLING_RELOAD_DELAY_VAR_NAME'])) else 60
 
 bot_instanse = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 spotylinkbot = bot.SpotyLinkBot(
     bot_instanse=bot_instanse,
     polling_interval=BOT_POLLING_INTERVAL,
+    error_reload_interval=BOT_POLLING_ERROR_RELOAD_INTERVAL,
     admin_chat_ids=BOT_ADMINS,
     send_start_message=BOT_SEND_START_MESSAGE
 )

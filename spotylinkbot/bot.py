@@ -1,4 +1,3 @@
-from logging import log
 import os
 import threading
 import time
@@ -14,11 +13,13 @@ logger = telebot.logger
 
 class SpotyLinkBot(threading.Thread):
     def __init__(self, bot_instanse: telebot.TeleBot, polling_interval: float,
-                    admin_chat_ids: Union[None, list] = None, send_start_message: bool = False) -> None:
+                    error_reload_interval: int, admin_chat_ids: Union[None, list] = None,
+                    send_start_message: bool = False) -> None:
         super().__init__()
         self.bot = bot_instanse
         self.polling_interval = polling_interval
         self.admin_chat_ids = list(set(admin_chat_ids))
+        self.error_reload_interval = error_reload_interval
 
         if self.admin_chat_ids and send_start_message:
             for id in self.admin_chat_ids:
@@ -125,7 +126,9 @@ class SpotyLinkBot(threading.Thread):
                 open(os.path.join('spotylinkbot', 'images', 'inline_help.jpg'), 'rb')
             )
 
-        @self.bot.message_handler(func=lambda message: spotify_links.SPOTIFY_ITEM_URL_PATTERN.match(message.text))
+        @self.bot.message_handler(
+            content_types=['text'],
+            func=lambda message: spotify_links.SPOTIFY_ITEM_URL_PATTERN.match(message.text))
         def handle_item_spotify_url_to_link(message):
             user_name = (' '.join(
                 message.from_user.first_name,
@@ -136,7 +139,9 @@ class SpotyLinkBot(threading.Thread):
             converted_link = spotify_links.convert_item_spotify_url_to_link(message.text)
             self.bot.reply_to(message, text=converted_link, parse_mode='Markdown')
 
-        @self.bot.message_handler(func=lambda message: spotify_links.ITEM_LINK_PATTERN.match(message.text))
+        @self.bot.message_handler(
+            content_types=['text'],
+            func=lambda message: spotify_links.ITEM_LINK_PATTERN.match(message.text))
         def handle_item_spotify_url_to_link(message):
             user_name = (' '.join(
                 message.from_user.first_name,
@@ -165,6 +170,6 @@ class SpotyLinkBot(threading.Thread):
             try:
                 self.start_polling()
             except Exception as err:
-                log.error(err)
-                logger.info('Reload bot polling in 1 minute')
-                time.sleep()
+                logger.error(err)
+                logger.info(f'Reload bot polling in {self.error_reload_interval} seconds')
+                time.sleep(self.error_reload_interval)

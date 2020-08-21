@@ -8,5 +8,5 @@ def can_value_be_int(value):
     try:
         int(value)
         return True
-    except ValueError:
+    except (ValueError, TypeError):
         return False
